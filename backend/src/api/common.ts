@@ -918,7 +918,7 @@ export class Common {
         };
       }
     } else if (addr.indexOf('ipv6') !== -1 || (config.LIGHTNING.BACKEND === 'lnd' && url.indexOf(']:'))) {
-      url = url.split('[')[1].split(']')[0];
+      url = url.split('[')?.[1]?.split(']')?.[0];
       const ipv = isIP(url);
       if (ipv === 6) {
         const parts = addr.split(':');
