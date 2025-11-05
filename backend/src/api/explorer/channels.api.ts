@@ -589,10 +589,10 @@ class ChannelsApi {
     if ((channel.last_update ?? 0) < 1514736061) { // January 1st 2018
       channel.last_update = null;
     }
-    if ((policy1.last_update ?? 0) < 1514736061) { // January 1st 2018
+    if ((policy1.last_update ?? 0) < 1514736061) {
       policy1.last_update = null;
     }
-    if ((policy2.last_update ?? 0) < 1514736061) { // January 1st 2018
+    if ((policy2.last_update ?? 0) < 1514736061) {
       policy2.last_update = null;
     }
 
@@ -620,72 +620,68 @@ class ChannelsApi {
         node2_is_disabled,
         node2_max_htlc_mtokens,
         node2_min_htlc_mtokens,
-        node2_updated_at
+        node2_updated_at,
+        node1_inbound_base_fee_mtokens,
+        node1_inbound_fee_rate,
+        node2_inbound_base_fee_mtokens,
+        node2_inbound_fee_rate
       )
-      VALUES (?, ?, ?, ?, ?, ?, ${status}, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
-        capacity = ?,
-        updated_at = ?,
-        status = ${status},
-        node1_public_key = ?,
-        node1_base_fee_mtokens = ?,
-        node1_cltv_delta = ?,
-        node1_fee_rate = ?,
-        node1_is_disabled = ?,
-        node1_max_htlc_mtokens = ?,
-        node1_min_htlc_mtokens = ?,
-        node1_updated_at = ?,
-        node2_public_key = ?,
-        node2_base_fee_mtokens = ?,
-        node2_cltv_delta = ?,
-        node2_fee_rate = ?,
-        node2_is_disabled = ?,
-        node2_max_htlc_mtokens = ?,
-        node2_min_htlc_mtokens = ?,
-        node2_updated_at = ?
+        capacity = VALUES(capacity),
+        updated_at = VALUES(updated_at),
+        status = VALUES(status),
+        node1_public_key = VALUES(node1_public_key),
+        node1_base_fee_mtokens = VALUES(node1_base_fee_mtokens),
+        node1_cltv_delta = VALUES(node1_cltv_delta),
+        node1_fee_rate = VALUES(node1_fee_rate),
+        node1_is_disabled = VALUES(node1_is_disabled),
+        node1_max_htlc_mtokens = VALUES(node1_max_htlc_mtokens),
+        node1_min_htlc_mtokens = VALUES(node1_min_htlc_mtokens),
+        node1_updated_at = VALUES(node1_updated_at),
+        node2_public_key = VALUES(node2_public_key),
+        node2_base_fee_mtokens = VALUES(node2_base_fee_mtokens),
+        node2_cltv_delta = VALUES(node2_cltv_delta),
+        node2_fee_rate = VALUES(node2_fee_rate),
+        node2_is_disabled = VALUES(node2_is_disabled),
+        node2_max_htlc_mtokens = VALUES(node2_max_htlc_mtokens),
+        node2_min_htlc_mtokens = VALUES(node2_min_htlc_mtokens),
+        node2_updated_at = VALUES(node2_updated_at),
+        node1_inbound_base_fee_mtokens = VALUES(node1_inbound_base_fee_mtokens),
+        node1_inbound_fee_rate = VALUES(node1_inbound_fee_rate),
+        node2_inbound_base_fee_mtokens = VALUES(node2_inbound_base_fee_mtokens),
+        node2_inbound_fee_rate = VALUES(node2_inbound_fee_rate)
       ;`;
 
+    // Build parameters in the exact same order as the INSERT column list above
     await DB.query(query, [
-      Common.channelShortIdToIntegerId(channel.channel_id),
-      Common.channelIntegerIdToShortId(channel.channel_id),
-      channel.capacity,
-      txid,
-      vout,
-      Common.utcDateToMysql(channel.last_update),
-      channel.node1_pub,
-      policy1.fee_base_msat,
-      policy1.time_lock_delta,
-      policy1.fee_rate_milli_msat,
-      policy1.disabled,
-      policy1.max_htlc_msat,
-      policy1.min_htlc,
-      Common.utcDateToMysql(policy1.last_update),
-      channel.node2_pub,
-      policy2.fee_base_msat,
-      policy2.time_lock_delta,
-      policy2.fee_rate_milli_msat,
-      policy2.disabled,
-      policy2.max_htlc_msat,
-      policy2.min_htlc,
-      Common.utcDateToMysql(policy2.last_update),
-      channel.capacity,
-      Common.utcDateToMysql(channel.last_update),
-      channel.node1_pub,
-      policy1.fee_base_msat,
-      policy1.time_lock_delta,
-      policy1.fee_rate_milli_msat,
-      policy1.disabled,
-      policy1.max_htlc_msat,
-      policy1.min_htlc,
-      Common.utcDateToMysql(policy1.last_update),
-      channel.node2_pub,
-      policy2.fee_base_msat,
-      policy2.time_lock_delta,
-      policy2.fee_rate_milli_msat,
-      policy2.disabled,
-      policy2.max_htlc_msat,
-      policy2.min_htlc,
-      Common.utcDateToMysql(policy2.last_update)
+      Common.channelShortIdToIntegerId(channel.channel_id),  // id
+      Common.channelIntegerIdToShortId(channel.channel_id),  // short_id
+      channel.capacity,                                      // capacity
+      txid,                                                  // transaction_id
+      vout,                                                  // transaction_vout
+      Common.utcDateToMysql(channel.last_update),            // updated_at
+      status,                                                // status (now parameterized)
+      channel.node1_pub,                                     // node1_public_key
+      policy1.fee_base_msat ?? null,                         // node1_base_fee_mtokens
+      policy1.time_lock_delta ?? null,                       // node1_cltv_delta
+      policy1.fee_rate_milli_msat ?? null,                   // node1_fee_rate
+      policy1.disabled ?? null,                              // node1_is_disabled
+      policy1.max_htlc_msat ?? null,                         // node1_max_htlc_mtokens
+      policy1.min_htlc ?? null,                              // node1_min_htlc_mtokens
+      Common.utcDateToMysql(policy1.last_update),            // node1_updated_at
+      channel.node2_pub,                                     // node2_public_key
+      policy2.fee_base_msat ?? null,                         // node2_base_fee_mtokens
+      policy2.time_lock_delta ?? null,                       // node2_cltv_delta
+      policy2.fee_rate_milli_msat ?? null,                   // node2_fee_rate
+      policy2.disabled ?? null,                              // node2_is_disabled
+      policy2.max_htlc_msat ?? null,                         // node2_max_htlc_mtokens
+      policy2.min_htlc ?? null,                              // node2_min_htlc_mtokens
+      Common.utcDateToMysql(policy2.last_update),            // node2_updated_at
+      policy1.inbound_fee_base_msat ?? null,                 // node1_inbound_base_fee_mtokens
+      policy1.inbound_fee_rate_milli_msat ?? null,           // node1_inbound_fee_rate
+      policy2.inbound_fee_base_msat ?? null,                 // node2_inbound_base_fee_mtokens
+      policy2.inbound_fee_rate_milli_msat ?? null            // node2_inbound_fee_rate
     ]);
   }
 

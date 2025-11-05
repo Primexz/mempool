@@ -7,7 +7,7 @@ import cpfpRepository from '../repositories/CpfpRepository';
 import { RowDataPacket } from 'mysql2';
 
 class DatabaseMigration {
-  private static currentVersion = 104;
+  private static currentVersion = 105;
   private queryTimeout = 3600_000;
   private statisticsAddedIndexed = false;
   private uniqueLogs: string[] = [];
@@ -1177,6 +1177,14 @@ class DatabaseMigration {
     if (databaseSchemaVersion < 103) {
       await this.$executeQuery('ALTER TABLE `blocks` ADD INDEX `stale` (`stale`)');
       await this.updateToSchemaVersion(103);
+    }
+
+    if (databaseSchemaVersion < 105) {
+      await this.$executeQuery('ALTER TABLE channels ADD COLUMN node1_inbound_base_fee_mtokens bigint(20) DEFAULT NULL');
+      await this.$executeQuery('ALTER TABLE channels ADD COLUMN node1_inbound_fee_rate bigint(11) DEFAULT NULL');
+      await this.$executeQuery('ALTER TABLE channels ADD COLUMN node2_inbound_base_fee_mtokens bigint(20) DEFAULT NULL');
+      await this.$executeQuery('ALTER TABLE channels ADD COLUMN node2_inbound_fee_rate bigint(11) DEFAULT NULL');
+      await this.updateToSchemaVersion(105);
     }
   }
 
