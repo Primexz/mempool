@@ -33,14 +33,14 @@
   }
 }
 
-.alias {
-  padding-left: 0;
+table {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
-.feerate {
-  @media (max-width: 815px) {
-    display: none;
-  }
+.alias {
+  padding-left: 0;
 }
 
 .status {

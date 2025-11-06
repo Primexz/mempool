@@ -6,18 +6,38 @@ import { handleError } from '../../utils/api';
 const TXID_REGEX = /^[a-f0-9]{64}$/i;
 
 class ChannelsRoutes {
-  constructor() { }
+  constructor() {}
 
   public initRoutes(app: Application) {
     app
-      .get(config.MEMPOOL.API_URL_PREFIX + 'lightning/channels/txids', this.$getChannelsByTransactionIds)
-      .get(config.MEMPOOL.API_URL_PREFIX + 'lightning/channels/search/:search', this.$searchChannelsById)
-      .get(config.MEMPOOL.API_URL_PREFIX + 'lightning/channels/:short_id', this.$getChannel)
-      .get(config.MEMPOOL.API_URL_PREFIX + 'lightning/channels', this.$getChannelsForNode)
-      .get(config.MEMPOOL.API_URL_PREFIX + 'lightning/penalties', this.$getPenaltyClosedChannels)
-      .get(config.MEMPOOL.API_URL_PREFIX + 'lightning/channels-geo', this.$getAllChannelsGeo)
-      .get(config.MEMPOOL.API_URL_PREFIX + 'lightning/channels-geo/:publicKey', this.$getAllChannelsGeo)
-    ;
+      .get(
+        config.MEMPOOL.API_URL_PREFIX + 'lightning/channels/txids',
+        this.$getChannelsByTransactionIds
+      )
+      .get(
+        config.MEMPOOL.API_URL_PREFIX + 'lightning/channels/search/:search',
+        this.$searchChannelsById
+      )
+      .get(
+        config.MEMPOOL.API_URL_PREFIX + 'lightning/channels/:short_id',
+        this.$getChannel
+      )
+      .get(
+        config.MEMPOOL.API_URL_PREFIX + 'lightning/channels',
+        this.$getChannelsForNode
+      )
+      .get(
+        config.MEMPOOL.API_URL_PREFIX + 'lightning/penalties',
+        this.$getPenaltyClosedChannels
+      )
+      .get(
+        config.MEMPOOL.API_URL_PREFIX + 'lightning/channels-geo',
+        this.$getAllChannelsGeo
+      )
+      .get(
+        config.MEMPOOL.API_URL_PREFIX + 'lightning/channels-geo/:publicKey',
+        this.$getAllChannelsGeo
+      );
   }
 
   private async $searchChannelsById(req: Request, res: Response) {
@@ -52,20 +72,28 @@ class ChannelsRoutes {
         return;
       }
 
-      const index = parseInt(typeof req.query.index === 'string' ? req.query.index : '0', 10) || 0;
-      const status: string = typeof req.query.status === 'string' ? req.query.status : '';
+      const index =
+        parseInt(
+          typeof req.query.index === 'string' ? req.query.index : '0',
+          10
+        ) || 0;
+      const status: string =
+        typeof req.query.status === 'string' ? req.query.status : '';
 
-      if (index < -1) {
-        handleError(req, res, 400, 'Invalid index');
-        return;
-      }
       if (['open', 'active', 'closed'].includes(status) === false) {
         handleError(req, res, 400, 'Invalid status');
         return;
       }
 
-      const channels = await channelsApi.$getChannelsForNode(req.query.public_key, index, 10, status);
-      const channelsCount = await channelsApi.$getChannelsCountForNode(req.query.public_key, status);
+      const channels = await channelsApi.$getChannelsForNode(
+        req.query.public_key,
+        index,
+        status
+      );
+      const channelsCount = await channelsApi.$getChannelsCountForNode(
+        req.query.public_key,
+        status
+      );
       res.header('Pragma', 'public');
       res.header('Cache-control', 'public');
       res.setHeader('Expires', new Date(Date.now() + 1000 * 60).toUTCString());
@@ -76,7 +104,10 @@ class ChannelsRoutes {
     }
   }
 
-  private async $getChannelsByTransactionIds(req: Request, res: Response): Promise<void> {
+  private async $getChannelsByTransactionIds(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     try {
       if (!Array.isArray(req.query.txId)) {
         handleError(req, res, 400, 'Not an array');
@@ -97,11 +128,15 @@ class ChannelsRoutes {
         const inputs: any = {};
         const outputs: any = {};
         // Assuming that we only have one lightning close input in each transaction. This may not be true in the future
-        const foundChannelsFromInput = channels.find((channel) => channel.closing_transaction_id === txid);
+        const foundChannelsFromInput = channels.find(
+          (channel) => channel.closing_transaction_id === txid
+        );
         if (foundChannelsFromInput) {
           inputs[0] = foundChannelsFromInput;
         }
-        const foundChannelsFromOutputs = channels.filter((channel) => channel.transaction_id === txid);
+        const foundChannelsFromOutputs = channels.filter(
+          (channel) => channel.transaction_id === txid
+        );
         for (const output of foundChannelsFromOutputs) {
           outputs[output.transaction_vout] = output;
         }
@@ -117,7 +152,10 @@ class ChannelsRoutes {
     }
   }
 
-  private async $getPenaltyClosedChannels(req: Request, res: Response): Promise<void> {
+  private async $getPenaltyClosedChannels(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     try {
       const channels = await channelsApi.$getPenaltyClosedChannels();
       res.header('Pragma', 'public');
@@ -131,8 +169,12 @@ class ChannelsRoutes {
 
   private async $getAllChannelsGeo(req: Request, res: Response) {
     try {
-      const style: string = typeof req.query.style === 'string' ? req.query.style : '';
-      const channels = await channelsApi.$getAllChannelsGeo(req.params?.publicKey, style);
+      const style: string =
+        typeof req.query.style === 'string' ? req.query.style : '';
+      const channels = await channelsApi.$getAllChannelsGeo(
+        req.params?.publicKey,
+        style
+      );
       res.header('Pragma', 'public');
       res.header('Cache-control', 'public');
       res.setHeader('Expires', new Date(Date.now() + 1000 * 60).toUTCString());
@@ -141,7 +183,6 @@ class ChannelsRoutes {
       handleError(req, res, 500, 'Failed to get channel geodata');
     }
   }
-
 }
 
 export default new ChannelsRoutes();

@@ -53,27 +53,35 @@ class ChannelsApi {
           GROUP BY nodes_1.public_key, nodes_2.public_key
           ORDER BY channels.capacity DESC
           LIMIT 10000
-        `;        
+        `;
       }
 
       const [rows]: any = await DB.query(query, params);
       return rows.map((row) => {
         if (style === 'widget') {
           return [
-            row.node1_longitude, row.node1_latitude,
-            row.node2_longitude, row.node2_latitude,
+            row.node1_longitude,
+            row.node1_latitude,
+            row.node2_longitude,
+            row.node2_latitude,
           ];
         } else {
           return [
-            row.node1_public_key, row.node1_alias,
-            row.node1_longitude, row.node1_latitude,
-            row.node2_public_key, row.node2_alias,
-            row.node2_longitude, row.node2_latitude,
+            row.node1_public_key,
+            row.node1_alias,
+            row.node1_longitude,
+            row.node1_latitude,
+            row.node2_public_key,
+            row.node2_alias,
+            row.node2_longitude,
+            row.node2_latitude,
           ];
         }
       });
     } catch (e) {
-      logger.err('$getAllChannelsGeo error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$getAllChannelsGeo error: ' + (e instanceof Error ? e.message : e)
+      );
       throw e;
     }
   }
@@ -88,10 +96,15 @@ class ChannelsApi {
       // add wildcard to search by prefix
       searchStripped += '%';
       const query = `SELECT id, short_id, capacity, status FROM channels WHERE id LIKE ? OR short_id LIKE ? LIMIT 10`;
-      const [rows]: any = await DB.query(query, [searchStripped, searchStripped]);
+      const [rows]: any = await DB.query(query, [
+        searchStripped,
+        searchStripped,
+      ]);
       return rows;
     } catch (e) {
-      logger.err('$searchChannelsById error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$searchChannelsById error: ' + (e instanceof Error ? e.message : e)
+      );
       throw e;
     }
   }
@@ -107,7 +120,9 @@ class ChannelsApi {
       const [rows]: any = await DB.query(query, [status]);
       return rows;
     } catch (e) {
-      logger.err('$getChannelsByStatus error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$getChannelsByStatus error: ' + (e instanceof Error ? e.message : e)
+      );
       throw e;
     }
   }
@@ -118,7 +133,10 @@ class ChannelsApi {
       const [rows]: any = await DB.query(query);
       return rows;
     } catch (e) {
-      logger.err('$getClosedChannelsWithoutReason error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$getClosedChannelsWithoutReason error: ' +
+          (e instanceof Error ? e.message : e)
+      );
       throw e;
     }
   }
@@ -138,7 +156,10 @@ class ChannelsApi {
       const [rows]: any = await DB.query(query);
       return rows;
     } catch (e) {
-      logger.err('$getPenaltyClosedChannels error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$getPenaltyClosedChannels error: ' +
+          (e instanceof Error ? e.message : e)
+      );
       throw e;
     }
   }
@@ -149,7 +170,10 @@ class ChannelsApi {
       const [rows]: any = await DB.query(query);
       return rows;
     } catch (e) {
-      logger.err('$getUnresolvedClosedChannels error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$getUnresolvedClosedChannels error: ' +
+          (e instanceof Error ? e.message : e)
+      );
       throw e;
     }
   }
@@ -164,7 +188,10 @@ class ChannelsApi {
       const [rows]: any = await DB.query(query);
       return rows;
     } catch (e) {
-      logger.err('$getUnresolvedClosedChannels error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$getUnresolvedClosedChannels error: ' +
+          (e instanceof Error ? e.message : e)
+      );
       throw e;
     }
   }
@@ -175,7 +202,10 @@ class ChannelsApi {
       const [rows]: any = await DB.query(query);
       return rows;
     } catch (e) {
-      logger.err('$getChannelsWithoutCreatedDate error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$getChannelsWithoutCreatedDate error: ' +
+          (e instanceof Error ? e.message : e)
+      );
       throw e;
     }
   }
@@ -230,21 +260,21 @@ class ChannelsApi {
 
       query = `SELECT capacity FROM channels WHERE status = 1 ORDER BY capacity`;
       let [capacity]: any = await DB.query(query);
-      capacity = capacity.map(capacity => capacity.capacity);
+      capacity = capacity.map((capacity) => capacity.capacity);
       const medianCapacity = capacity[Math.floor(capacity.length / 2)];
 
       // Fee rates
       query = `SELECT node1_fee_rate FROM channels WHERE node1_fee_rate < ${ignoredFeeRateThreshold} AND status = 1`;
       let [feeRates1]: any = await DB.query(query);
-      feeRates1 = feeRates1.map(rate => rate.node1_fee_rate);
+      feeRates1 = feeRates1.map((rate) => rate.node1_fee_rate);
       query = `SELECT node2_fee_rate FROM channels WHERE node2_fee_rate < ${ignoredFeeRateThreshold} AND status = 1`;
       let [feeRates2]: any = await DB.query(query);
-      feeRates2 = feeRates2.map(rate => rate.node2_fee_rate);
+      feeRates2 = feeRates2.map((rate) => rate.node2_fee_rate);
 
-      let feeRates = (feeRates1.concat(feeRates2)).sort((a, b) => a - b);
+      let feeRates = feeRates1.concat(feeRates2).sort((a, b) => a - b);
       let avgFeeRate = 0;
       for (const rate of feeRates) {
-        avgFeeRate += rate; 
+        avgFeeRate += rate;
       }
       avgFeeRate /= feeRates.length;
       const medianFeeRate = feeRates[Math.floor(feeRates.length / 2)];
@@ -252,19 +282,19 @@ class ChannelsApi {
       // Base fees
       query = `SELECT node1_base_fee_mtokens FROM channels WHERE node1_base_fee_mtokens < ${ignoredBaseFeeThreshold} AND status = 1`;
       let [baseFees1]: any = await DB.query(query);
-      baseFees1 = baseFees1.map(rate => rate.node1_base_fee_mtokens);
+      baseFees1 = baseFees1.map((rate) => rate.node1_base_fee_mtokens);
       query = `SELECT node2_base_fee_mtokens FROM channels WHERE node2_base_fee_mtokens < ${ignoredBaseFeeThreshold} AND status = 1`;
       let [baseFees2]: any = await DB.query(query);
-      baseFees2 = baseFees2.map(rate => rate.node2_base_fee_mtokens);
+      baseFees2 = baseFees2.map((rate) => rate.node2_base_fee_mtokens);
 
-      let baseFees = (baseFees1.concat(baseFees2)).sort((a, b) => a - b);
+      let baseFees = baseFees1.concat(baseFees2).sort((a, b) => a - b);
       let avgBaseFee = 0;
       for (const fee of baseFees) {
-        avgBaseFee += fee; 
+        avgBaseFee += fee;
       }
       avgBaseFee /= baseFees.length;
       const medianBaseFee = feeRates[Math.floor(baseFees.length / 2)];
-      
+
       return {
         avgCapacity: parseInt(avgCapacity[0].avgCapacity, 10),
         avgFeeRate: avgFeeRate,
@@ -272,15 +302,20 @@ class ChannelsApi {
         medianCapacity: medianCapacity,
         medianFeeRate: medianFeeRate,
         medianBaseFee: medianBaseFee,
-      }
-
+      };
     } catch (e) {
-      logger.err(`Cannot calculate channels statistics. Reason: ${e instanceof Error ? e.message : e}`);
+      logger.err(
+        `Cannot calculate channels statistics. Reason: ${
+          e instanceof Error ? e.message : e
+        }`
+      );
       throw e;
     }
   }
 
-  public async $getChannelsByTransactionId(transactionIds: string[]): Promise<any[]> {
+  public async $getChannelsByTransactionId(
+    transactionIds: string[]
+  ): Promise<any[]> {
     try {
       const query = `
         SELECT n1.alias AS alias_left, n2.alias AS alias_right, channels.*
@@ -289,11 +324,17 @@ class ChannelsApi {
         LEFT JOIN nodes AS n2 ON n2.public_key = channels.node2_public_key
         WHERE channels.transaction_id IN ? OR channels.closing_transaction_id IN ?
       `;
-      const [rows]: any = await DB.query(query, [[transactionIds], [transactionIds]]);
+      const [rows]: any = await DB.query(query, [
+        [transactionIds],
+        [transactionIds],
+      ]);
       const channels = rows.map((row) => this.convertChannel(row));
       return channels;
     } catch (e) {
-      logger.err('$getChannelByTransactionId error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$getChannelByTransactionId error: ' +
+          (e instanceof Error ? e.message : e)
+      );
       throw e;
     }
   }
@@ -312,7 +353,9 @@ class ChannelsApi {
         return rows[0];
       }
     } catch (e) {
-      logger.err('$getChannelByClosingId error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$getChannelByClosingId error: ' + (e instanceof Error ? e.message : e)
+      );
       // don't throw - this data isn't essential
     }
   }
@@ -327,18 +370,27 @@ class ChannelsApi {
       `;
       const [rows]: any = await DB.query(query, [transactionId]);
       if (rows.length > 0) {
-        return rows.map(row => {
+        return rows.map((row) => {
           row.outputs = JSON.parse(row.outputs);
           return row;
         });
       }
     } catch (e) {
-      logger.err('$getChannelsByOpeningId error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$getChannelsByOpeningId error: ' + (e instanceof Error ? e.message : e)
+      );
       // don't throw - this data isn't essential
     }
   }
 
-  public async $updateClosingInfo(channelInfo: { id: string, node1_closing_balance: number, node2_closing_balance: number, closed_by: string | null, closing_fee: number, outputs: ILightningApi.ForensicOutput[]}): Promise<void> {
+  public async $updateClosingInfo(channelInfo: {
+    id: string;
+    node1_closing_balance: number;
+    node2_closing_balance: number;
+    closed_by: string | null;
+    closing_fee: number;
+    outputs: ILightningApi.ForensicOutput[];
+  }): Promise<void> {
     try {
       const query = `
         UPDATE channels SET
@@ -358,12 +410,20 @@ class ChannelsApi {
         channelInfo.id,
       ]);
     } catch (e) {
-      logger.err('$updateClosingInfo error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$updateClosingInfo error: ' + (e instanceof Error ? e.message : e)
+      );
       // don't throw - this data isn't essential
     }
   }
 
-  public async $updateOpeningInfo(channelInfo: { id: string, node1_funding_balance: number, node2_funding_balance: number, funding_ratio: number, single_funded: boolean | void }): Promise<void> {
+  public async $updateOpeningInfo(channelInfo: {
+    id: string;
+    node1_funding_balance: number;
+    node2_funding_balance: number;
+    funding_ratio: number;
+    single_funded: boolean | void;
+  }): Promise<void> {
     try {
       const query = `
         UPDATE channels SET
@@ -381,7 +441,9 @@ class ChannelsApi {
         channelInfo.id,
       ]);
     } catch (e) {
-      logger.err('$updateOpeningInfo error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$updateOpeningInfo error: ' + (e instanceof Error ? e.message : e)
+      );
       // don't throw - this data isn't essential
     }
   }
@@ -395,12 +457,19 @@ class ChannelsApi {
       `;
       await DB.query<ResultSetHeader>(query, [id]);
     } catch (e) {
-      logger.err('$markChannelSourceChecked error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$markChannelSourceChecked error: ' +
+          (e instanceof Error ? e.message : e)
+      );
       // don't throw - this data isn't essential
     }
   }
 
-  public async $getChannelsForNode(public_key: string, index: number, length: number, status: string): Promise<any[]> {
+  public async $getChannelsForNode(
+    public_key: string,
+    index: number,
+    status: string
+  ): Promise<any[]> {
     try {
       let channelStatusFilter;
       if (status === 'open') {
@@ -413,92 +482,198 @@ class ChannelsApi {
         throw new Error('getChannelsForNode: Invalid status requested');
       }
 
-      // Channels originating from node
-      let query = `
-        SELECT COALESCE(node2.alias, SUBSTRING(node2_public_key, 0, 20)) AS alias, COALESCE(node2.public_key, node2_public_key) AS public_key,
-          channels.status, channels.node1_fee_rate,
-          channels.capacity, channels.short_id, channels.id, channels.closing_reason,
-          UNIX_TIMESTAMP(closing_date) as closing_date, UNIX_TIMESTAMP(channels.updated_at) as updated_at
-        FROM channels
-        LEFT JOIN nodes AS node2 ON node2.public_key = channels.node2_public_key
-        WHERE node1_public_key = ? AND channels.status ${channelStatusFilter}
+      const newQuery = `
+        SELECT
+          -- peer alias / fallback to shortened peer pubkey
+          CASE WHEN channels.node1_public_key = ?
+            THEN COALESCE(node2.alias, LEFT(channels.node2_public_key, 20))
+            ELSE COALESCE(node1.alias, LEFT(channels.node1_public_key, 20))
+          END AS alias,
+
+          -- peer public key (prefer nodes table value if present)
+          CASE WHEN channels.node1_public_key = ?
+            THEN COALESCE(node2.public_key, channels.node2_public_key)
+            ELSE COALESCE(node1.public_key, channels.node1_public_key)
+          END AS public_key,
+
+          channels.status,
+
+          -- local fees (fees charged by our node for this channel)
+          CASE WHEN channels.node1_public_key = ? THEN channels.node1_fee_rate ELSE channels.node2_fee_rate END AS local_fee_rate,
+          CASE WHEN channels.node1_public_key = ? THEN channels.node1_base_fee_mtokens ELSE channels.node2_base_fee_mtokens END AS local_base_fee_mtokens,
+          CASE WHEN channels.node1_public_key = ? THEN channels.node1_inbound_fee_rate ELSE channels.node2_inbound_fee_rate END AS local_inbound_fee_rate,
+          CASE WHEN channels.node1_public_key = ? THEN channels.node1_inbound_base_fee_mtokens ELSE channels.node2_inbound_base_fee_mtokens END AS local_inbound_base_fee_mtokens,
+
+          -- peer fees (fees charged by the remote node)
+          CASE WHEN channels.node1_public_key = ? THEN channels.node2_fee_rate ELSE channels.node1_fee_rate END AS peer_fee_rate,
+          CASE WHEN channels.node1_public_key = ? THEN channels.node2_base_fee_mtokens ELSE channels.node1_base_fee_mtokens END AS peer_base_fee_mtokens,
+          CASE WHEN channels.node1_public_key = ? THEN channels.node2_inbound_fee_rate ELSE channels.node1_inbound_fee_rate END AS peer_inbound_fee_rate,
+          CASE WHEN channels.node1_public_key = ? THEN channels.node2_inbound_base_fee_mtokens ELSE channels.node1_inbound_base_fee_mtokens END AS peer_inbound_base_fee_mtokens,
+
+          channels.capacity,
+          channels.short_id,
+          channels.id,
+          channels.closing_reason,
+          UNIX_TIMESTAMP(closing_date) AS closing_date,
+          UNIX_TIMESTAMP(channels.updated_at) AS updated_at
+
+          FROM channels
+          LEFT JOIN nodes AS node1 ON node1.public_key = channels.node1_public_key
+          LEFT JOIN nodes AS node2 ON node2.public_key = channels.node2_public_key
+          WHERE (channels.node1_public_key = ? OR channels.node2_public_key = ?)
+            AND channels.status ${channelStatusFilter}
       `;
-      const [channelsFromNode]: any = await DB.query(query, [public_key]);
 
-      // Channels incoming to node
-      query = `
-        SELECT COALESCE(node1.alias, SUBSTRING(node1_public_key, 0, 20)) AS alias, COALESCE(node1.public_key, node1_public_key) AS public_key,
-          channels.status, channels.node2_fee_rate,
-          channels.capacity, channels.short_id, channels.id, channels.closing_reason,
-          UNIX_TIMESTAMP(closing_date) as closing_date, UNIX_TIMESTAMP(channels.updated_at) as updated_at
-        FROM channels
-        LEFT JOIN nodes AS node1 ON node1.public_key = channels.node1_public_key
-        WHERE node2_public_key = ? AND channels.status ${channelStatusFilter}
-      `;
-      const [channelsToNode]: any = await DB.query(query, [public_key]);
+      const [channelsRows]: any = await DB.query(newQuery, [
+        public_key,
+        public_key,
+        public_key,
+        public_key,
+        public_key,
+        public_key,
+        public_key,
+        public_key,
+        public_key,
+        public_key,
+        public_key,
+        public_key
+      ]);
 
-      let allChannels = channelsFromNode.concat(channelsToNode);
-      allChannels.sort((a, b) => {
-        if (status === 'closed') {
-          if (!b.closing_date && !a.closing_date) {
-            return (b.updated_at ?? 0) - (a.updated_at ?? 0);
-          } else {
-            return (b.closing_date ?? 0) - (a.closing_date ?? 0);
-          }
-        } else {
-          return b.capacity - a.capacity;
-        }
-      });
 
-      if (index >= 0) {
-        allChannels = allChannels.slice(index, index + length);
-      } else if (index === -1) { // Node channels tree chart
-        allChannels = allChannels.slice(0, 1000);
-      }
+      // // Channels originating from node
+      // let query = `
+      //   SELECT COALESCE(node2.alias, SUBSTRING(node2_public_key, 0, 20)) AS alias, COALESCE(node2.public_key, node2_public_key) AS public_key,
+      //     channels.status, channels.node1_fee_rate, channels.node1_inbound_fee_rate, channels.node1_inbound_base_fee_mtokens,
+      //     channels.capacity, channels.short_id, channels.id, channels.closing_reason,
+      //     UNIX_TIMESTAMP(closing_date) as closing_date, UNIX_TIMESTAMP(channels.updated_at) as updated_at
+      //   FROM channels
+      //   LEFT JOIN nodes AS node2 ON node2.public_key = channels.node2_public_key
+      //   WHERE node1_public_key = ? AND channels.status ${channelStatusFilter}
+      // `;
+      // const [channelsFromNode]: any = await DB.query(query, [public_key]);
 
-      const channels: any[] = []
-      for (const row of allChannels) {
-        let channel;
-        if (index >= 0) {
-          const activeChannelsStats: any = await nodesApi.$getActiveChannelsStats(row.public_key);
-          channel = {
+      // // Channels incoming to node
+      // query = `
+      //   SELECT COALESCE(node1.alias, SUBSTRING(node1_public_key, 0, 20)) AS alias, COALESCE(node1.public_key, node1_public_key) AS public_key,
+      //     channels.status, channels.node2_fee_rate, channels.node2_inbound_fee_rate, channels.node2_inbound_base_fee_mtokens,
+      //     channels.capacity, channels.short_id, channels.id, channels.closing_reason,
+      //     UNIX_TIMESTAMP(closing_date) as closing_date, UNIX_TIMESTAMP(channels.updated_at) as updated_at
+      //   FROM channels
+      //   LEFT JOIN nodes AS node1 ON node1.public_key = channels.node1_public_key
+      //   WHERE node2_public_key = ? AND channels.status ${channelStatusFilter}
+      // `;
+      // const [channelsToNode]: any = await DB.query(query, [public_key]);
+
+      // let allChannels = channelsFromNode.concat(channelsToNode);
+      // allChannels.sort((a, b) => {
+      //   if (status === 'closed') {
+      //     if (!b.closing_date && !a.closing_date) {
+      //       return (b.updated_at ?? 0) - (a.updated_at ?? 0);
+      //     } else {
+      //       return (b.closing_date ?? 0) - (a.closing_date ?? 0);
+      //     }
+      //   } else {
+      //     return b.capacity - a.capacity;
+      //   }
+      // });
+
+      // if (index === -1) {
+      //   // Node channels tree chart
+      //   allChannels = allChannels.slice(0, 1000);
+      // }
+
+      const channels: any[] = [];
+      for (const row of channelsRows) {
+          const activeChannelsStats: any =
+            await nodesApi.$getActiveChannelsStats(row.public_key);
+
+          channels.push({
             status: row.status,
             closing_reason: row.closing_reason,
             closing_date: row.closing_date,
             capacity: row.capacity ?? 0,
             short_id: row.short_id,
             id: row.id,
-            fee_rate: row.node1_fee_rate ?? row.node2_fee_rate ?? 0,
+            fee: {
+              local: {
+                rate: row.local_fee_rate,
+                base: row.local_base_fee_mtokens,
+                inbound_rate: row.local_inbound_fee_rate,
+                inbound_base: row.local_inbound_base_fee_mtokens
+              }, 
+              peer: {
+                rate: row.peer_fee_rate,
+                base: row.peer_base_fee_mtokens,
+                inbound_rate: row.peer_inbound_fee_rate,
+                inbound_base: row.peer_inbound_base_fee_mtokens
+              }
+            },
             node: {
-              alias: row.alias.length > 0 ? row.alias : row.public_key.slice(0, 20),
+              alias:
+                row.alias.length > 0 ? row.alias : row.public_key.slice(0, 20),
               public_key: row.public_key,
               channels: activeChannelsStats.active_channel_count ?? 0,
               capacity: activeChannelsStats.capacity ?? 0,
-            }
-          };
-        } else if (index === -1) {
-          channel = {
-            capacity: row.capacity ?? 0,
-            short_id: row.short_id,
-            id: row.id,
-            node: {
-              alias: row.alias.length > 0 ? row.alias : row.public_key.slice(0, 20),
-              public_key: row.public_key,
-            }
-          };
-        }
+            },
+          })
 
-        channels.push(channel);
+        // let channel;
+        // if (index === -1) {
+        //   channel = {
+        //     capacity: row.capacity ?? 0,
+        //     short_id: row.short_id,
+        //     id: row.id,
+        //     node: {
+        //       alias:
+        //         row.alias.length > 0 ? row.alias : row.public_key.slice(0, 20),
+        //       public_key: row.public_key,
+        //     },
+        //   };
+        // } else {
+        //   const activeChannelsStats: any =
+        //     await nodesApi.$getActiveChannelsStats(row.public_key);
+        //   channel = {
+        //     status: row.status,
+        //     closing_reason: row.closing_reason,
+        //     closing_date: row.closing_date,
+        //     capacity: row.capacity ?? 0,
+        //     short_id: row.short_id,
+        //     id: row.id,
+        //     fee_rate: row.node1_fee_rate ?? row.node2_fee_rate ?? 0,
+        //     inbound_fee: {
+        //       fee_rate:
+        //         row.node1_inbound_fee_rate ?? row.node2_inbound_fee_rate ?? 0,
+        //       base_fee_mtokens:
+        //         row.node1_inbound_base_fee_mtokens ??
+        //         row.node2_inbound_base_fee_mtokens ??
+        //         0,
+        //     },
+        //     node: {
+        //       alias:
+        //         row.alias.length > 0 ? row.alias : row.public_key.slice(0, 20),
+        //       public_key: row.public_key,
+        //       channels: activeChannelsStats.active_channel_count ?? 0,
+        //       capacity: activeChannelsStats.capacity ?? 0,
+        //     },
+        //   };
+        // }
+
+        // channels.push(channel);
       }
 
       return channels;
     } catch (e) {
-      logger.err('$getChannelsForNode error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$getChannelsForNode error: ' + (e instanceof Error ? e.message : e)
+      );
       throw e;
     }
   }
 
-  public async $getChannelsCountForNode(public_key: string, status: string): Promise<any> {
+  public async $getChannelsCountForNode(
+    public_key: string,
+    status: string
+  ): Promise<any> {
     try {
       // Default active and inactive channels
       let statusQuery = '< 2';
@@ -515,63 +690,67 @@ class ChannelsApi {
       const [rows]: any = await DB.query(query, [public_key, public_key]);
       return rows[0]['count'];
     } catch (e) {
-      logger.err('$getChannelsForNode error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$getChannelsForNode error: ' + (e instanceof Error ? e.message : e)
+      );
       throw e;
     }
   }
 
   private convertChannel(channel: any): any {
     return {
-      'id': channel.id,
-      'short_id': channel.short_id,
-      'capacity': channel.capacity,
-      'transaction_id': channel.transaction_id,
-      'transaction_vout': channel.transaction_vout,
-      'closing_transaction_id': channel.closing_transaction_id,
-      'closing_fee': channel.closing_fee,
-      'closing_reason': channel.closing_reason,
-      'closing_date': channel.closing_date,
-      'updated_at': channel.updated_at,
-      'created': channel.created,
-      'status': channel.status,
-      'funding_ratio': channel.funding_ratio,
-      'closed_by': channel.closed_by,
-      'single_funded': !!channel.single_funded,
-      'node_left': {
-        'alias': channel.alias_left,
-        'public_key': channel.node1_public_key,
-        'channels': channel.channels_left,
-        'capacity': channel.capacity_left,
-        'base_fee_mtokens': channel.node1_base_fee_mtokens,
-        'cltv_delta': channel.node1_cltv_delta,
-        'fee_rate': channel.node1_fee_rate,
-        'is_disabled': channel.node1_is_disabled,
-        'max_htlc_mtokens': channel.node1_max_htlc_mtokens,
-        'min_htlc_mtokens': channel.node1_min_htlc_mtokens,
-        'updated_at': channel.node1_updated_at,
-        'longitude': channel.node1_longitude,
-        'latitude': channel.node1_latitude,
-        'funding_balance': channel.node1_funding_balance,
-        'closing_balance': channel.node1_closing_balance,
-        'initiated_close': channel.closed_by === channel.node1_public_key ? true : undefined,
+      id: channel.id,
+      short_id: channel.short_id,
+      capacity: channel.capacity,
+      transaction_id: channel.transaction_id,
+      transaction_vout: channel.transaction_vout,
+      closing_transaction_id: channel.closing_transaction_id,
+      closing_fee: channel.closing_fee,
+      closing_reason: channel.closing_reason,
+      closing_date: channel.closing_date,
+      updated_at: channel.updated_at,
+      created: channel.created,
+      status: channel.status,
+      funding_ratio: channel.funding_ratio,
+      closed_by: channel.closed_by,
+      single_funded: !!channel.single_funded,
+      node_left: {
+        alias: channel.alias_left,
+        public_key: channel.node1_public_key,
+        channels: channel.channels_left,
+        capacity: channel.capacity_left,
+        base_fee_mtokens: channel.node1_base_fee_mtokens,
+        cltv_delta: channel.node1_cltv_delta,
+        fee_rate: channel.node1_fee_rate,
+        is_disabled: channel.node1_is_disabled,
+        max_htlc_mtokens: channel.node1_max_htlc_mtokens,
+        min_htlc_mtokens: channel.node1_min_htlc_mtokens,
+        updated_at: channel.node1_updated_at,
+        longitude: channel.node1_longitude,
+        latitude: channel.node1_latitude,
+        funding_balance: channel.node1_funding_balance,
+        closing_balance: channel.node1_closing_balance,
+        initiated_close:
+          channel.closed_by === channel.node1_public_key ? true : undefined,
       },
-      'node_right': {
-        'alias': channel.alias_right,
-        'public_key': channel.node2_public_key,
-        'channels': channel.channels_right,
-        'capacity': channel.capacity_right,
-        'base_fee_mtokens': channel.node2_base_fee_mtokens,
-        'cltv_delta': channel.node2_cltv_delta,
-        'fee_rate': channel.node2_fee_rate,
-        'is_disabled': channel.node2_is_disabled,
-        'max_htlc_mtokens': channel.node2_max_htlc_mtokens,
-        'min_htlc_mtokens': channel.node2_min_htlc_mtokens,
-        'updated_at': channel.node2_updated_at,
-        'longitude': channel.node2_longitude,
-        'latitude': channel.node2_latitude,
-        'funding_balance': channel.node2_funding_balance,
-        'closing_balance': channel.node2_closing_balance,
-        'initiated_close': channel.closed_by === channel.node2_public_key ? true : undefined,
+      node_right: {
+        alias: channel.alias_right,
+        public_key: channel.node2_public_key,
+        channels: channel.channels_right,
+        capacity: channel.capacity_right,
+        base_fee_mtokens: channel.node2_base_fee_mtokens,
+        cltv_delta: channel.node2_cltv_delta,
+        fee_rate: channel.node2_fee_rate,
+        is_disabled: channel.node2_is_disabled,
+        max_htlc_mtokens: channel.node2_max_htlc_mtokens,
+        min_htlc_mtokens: channel.node2_min_htlc_mtokens,
+        updated_at: channel.node2_updated_at,
+        longitude: channel.node2_longitude,
+        latitude: channel.node2_latitude,
+        funding_balance: channel.node2_funding_balance,
+        closing_balance: channel.node2_closing_balance,
+        initiated_close:
+          channel.closed_by === channel.node2_public_key ? true : undefined,
       },
     };
   }
@@ -579,14 +758,20 @@ class ChannelsApi {
   /**
    * Save or update a channel present in the graph
    */
-  public async $saveChannel(channel: ILightningApi.Channel, status = 1): Promise<void> {
-    const [ txid, vout ] = channel.chan_point.split(':');
+  public async $saveChannel(
+    channel: ILightningApi.Channel,
+    status = 1
+  ): Promise<void> {
+    const [txid, vout] = channel.chan_point.split(':');
 
-    const policy1: Partial<ILightningApi.RoutingPolicy> = channel.node1_policy || {};
-    const policy2: Partial<ILightningApi.RoutingPolicy> = channel.node2_policy || {};
+    const policy1: Partial<ILightningApi.RoutingPolicy> =
+      channel.node1_policy || {};
+    const policy2: Partial<ILightningApi.RoutingPolicy> =
+      channel.node2_policy || {};
 
     // https://github.com/mempool/mempool/issues/3006
-    if ((channel.last_update ?? 0) < 1514736061) { // January 1st 2018
+    if ((channel.last_update ?? 0) < 1514736061) {
+      // January 1st 2018
       channel.last_update = null;
     }
     if ((policy1.last_update ?? 0) < 1514736061) {
@@ -655,33 +840,33 @@ class ChannelsApi {
 
     // Build parameters in the exact same order as the INSERT column list above
     await DB.query(query, [
-      Common.channelShortIdToIntegerId(channel.channel_id),  // id
-      Common.channelIntegerIdToShortId(channel.channel_id),  // short_id
-      channel.capacity,                                      // capacity
-      txid,                                                  // transaction_id
-      vout,                                                  // transaction_vout
-      Common.utcDateToMysql(channel.last_update),            // updated_at
-      status,                                                // status (now parameterized)
-      channel.node1_pub,                                     // node1_public_key
-      policy1.fee_base_msat ?? null,                         // node1_base_fee_mtokens
-      policy1.time_lock_delta ?? null,                       // node1_cltv_delta
-      policy1.fee_rate_milli_msat ?? null,                   // node1_fee_rate
-      policy1.disabled ?? null,                              // node1_is_disabled
-      policy1.max_htlc_msat ?? null,                         // node1_max_htlc_mtokens
-      policy1.min_htlc ?? null,                              // node1_min_htlc_mtokens
-      Common.utcDateToMysql(policy1.last_update),            // node1_updated_at
-      channel.node2_pub,                                     // node2_public_key
-      policy2.fee_base_msat ?? null,                         // node2_base_fee_mtokens
-      policy2.time_lock_delta ?? null,                       // node2_cltv_delta
-      policy2.fee_rate_milli_msat ?? null,                   // node2_fee_rate
-      policy2.disabled ?? null,                              // node2_is_disabled
-      policy2.max_htlc_msat ?? null,                         // node2_max_htlc_mtokens
-      policy2.min_htlc ?? null,                              // node2_min_htlc_mtokens
-      Common.utcDateToMysql(policy2.last_update),            // node2_updated_at
-      policy1.inbound_fee_base_msat ?? null,                 // node1_inbound_base_fee_mtokens
-      policy1.inbound_fee_rate_milli_msat ?? null,           // node1_inbound_fee_rate
-      policy2.inbound_fee_base_msat ?? null,                 // node2_inbound_base_fee_mtokens
-      policy2.inbound_fee_rate_milli_msat ?? null            // node2_inbound_fee_rate
+      Common.channelShortIdToIntegerId(channel.channel_id), // id
+      Common.channelIntegerIdToShortId(channel.channel_id), // short_id
+      channel.capacity, // capacity
+      txid, // transaction_id
+      vout, // transaction_vout
+      Common.utcDateToMysql(channel.last_update), // updated_at
+      status, // status (now parameterized)
+      channel.node1_pub, // node1_public_key
+      policy1.fee_base_msat ?? null, // node1_base_fee_mtokens
+      policy1.time_lock_delta ?? null, // node1_cltv_delta
+      policy1.fee_rate_milli_msat ?? null, // node1_fee_rate
+      policy1.disabled ?? null, // node1_is_disabled
+      policy1.max_htlc_msat ?? null, // node1_max_htlc_mtokens
+      policy1.min_htlc ?? null, // node1_min_htlc_mtokens
+      Common.utcDateToMysql(policy1.last_update), // node1_updated_at
+      channel.node2_pub, // node2_public_key
+      policy2.fee_base_msat ?? null, // node2_base_fee_mtokens
+      policy2.time_lock_delta ?? null, // node2_cltv_delta
+      policy2.fee_rate_milli_msat ?? null, // node2_fee_rate
+      policy2.disabled ?? null, // node2_is_disabled
+      policy2.max_htlc_msat ?? null, // node2_max_htlc_mtokens
+      policy2.min_htlc ?? null, // node2_min_htlc_mtokens
+      Common.utcDateToMysql(policy2.last_update), // node2_updated_at
+      policy1.inbound_fee_base_msat ?? null, // node1_inbound_base_fee_mtokens
+      policy1.inbound_fee_rate_milli_msat ?? null, // node1_inbound_fee_rate
+      policy2.inbound_fee_base_msat ?? null, // node2_inbound_base_fee_mtokens
+      policy2.inbound_fee_rate_milli_msat ?? null, // node2_inbound_fee_rate
     ]);
   }
 
@@ -698,19 +883,26 @@ class ChannelsApi {
         UPDATE channels
         SET status = 0
         WHERE id NOT IN (
-          ${graphChannelsIds.map(id => `"${id}"`).join(',')}
+          ${graphChannelsIds.map((id) => `"${id}"`).join(',')}
         )
         AND status != 2
       `);
       if (result[0].changedRows ?? 0 > 0) {
-        logger.debug(`Marked ${result[0].changedRows} channels as inactive because they are not in the graph`, logger.tags.ln);
+        logger.debug(
+          `Marked ${result[0].changedRows} channels as inactive because they are not in the graph`,
+          logger.tags.ln
+        );
       }
     } catch (e) {
-      logger.err('$setChannelsInactive() error: ' + (e instanceof Error ? e.message : e));
+      logger.err(
+        '$setChannelsInactive() error: ' + (e instanceof Error ? e.message : e)
+      );
     }
   }
 
-  public async $getLatestChannelUpdateForNode(publicKey: string): Promise<number> {
+  public async $getLatestChannelUpdateForNode(
+    publicKey: string
+  ): Promise<number> {
     try {
       const query = `
         SELECT MAX(UNIX_TIMESTAMP(updated_at)) as updated_at
@@ -722,7 +914,11 @@ class ChannelsApi {
         return rows[0].updated_at;
       }
     } catch (e) {
-      logger.err(`Can't getLatestChannelUpdateForNode for ${publicKey}. Reason ${e instanceof Error ? e.message : e}`);
+      logger.err(
+        `Can't getLatestChannelUpdateForNode for ${publicKey}. Reason ${
+          e instanceof Error ? e.message : e
+        }`
+      );
     }
     return 0;
   }

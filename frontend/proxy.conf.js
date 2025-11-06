@@ -26,14 +26,14 @@ PROXY_CONFIG = [
         '!/liquidtestnet', '!/liquidtestnet/**', '!/liquidtestnet/',
         '/testnet/api/**', '/signet/api/**', '/testnet4/api/**'
         ],
-        target: "https://mempool.space",
+        target: "https://mempool.primexz.de",
         ws: true,
         secure: false,
         changeOrigin: true
     },
     {
         context: ['/api/v1/ws'],
-        target: "https://mempool.space",
+        target: "https://mempool.primexz.de",
         ws: true,
         secure: false,
         changeOrigin: true,
