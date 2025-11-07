@@ -8,6 +8,34 @@
         <input type="radio" [value]="'closed'" fragment="closed" formControlName="status"><span i18n="closed">Closed</span>
       </label>
     </div>
+    <div class="ml-2" style="display: inline-block; vertical-align: middle;">
+      <input type="search" class="form-control" placeholder="Search alias" formControlName="alias">
+    </div>
+    <div class="ml-2" style="display: inline-block; vertical-align: middle;">
+      <div ngbDropdown class="dropdown-container" (window:resize)="onResize()" [ngClass]="{'d-inline-block': true}">
+        <button ngbDropdownToggle type="button" class="btn btn-secondary dropdown-toggle-split btn-sm d-flex justify-content-center align-items-center" aria-haspopup="true">
+          Columns
+        </button>
+        <div ngbDropdownMenu [ngClass]="{'dropdown-menu-right' : isMobileDropdown}" class="p-2" formGroupName="columns">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="colChannelInfo" formControlName="channelInfo">
+            <label class="form-check-label" for="colChannelInfo">Channel Info</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="colLocal" formControlName="local">
+            <label class="form-check-label" for="colLocal">Local</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="colPeer" formControlName="peer">
+            <label class="form-check-label" for="colPeer">Peer</label>
+          </div>
+          <div class="form-check" *ngIf="status === 'closed'">
+            <input class="form-check-input" type="checkbox" id="colClosing" formControlName="closingDate">
+            <label class="form-check-label" for="colClosing">Closing date</label>
+          </div>
+        </div>
+      </div>
+    </div>
   </form>
 
   <table class="table table-borderless" *ngIf="response.channels.length > 0" [style]="isLoading ? 'opacity: 0.75' : ''">
@@ -30,32 +58,32 @@
 <ng-template #tableHeader>
   <thead>
     <tr>
-      <th colspan="5">Channel Info</th>
-      <th colspan="4">Local</th>
-      <th colspan="4">Peer</th>
+      <th *ngIf="columns.get('channelInfo').value" colspan="5">Channel Info</th>
+      <th *ngIf="columns.get('local').value && status !== 'closed'" colspan="4">Local</th>
+      <th *ngIf="columns.get('peer').value && status !== 'closed'" colspan="4">Peer</th>
     </tr>
 
     <tr>
-      <th class="alias text-left" i18n="lightning.alias">Alias</th>
-      <th class="nodedetails text-left">&nbsp;</th>
-      <th class="liquidity text-right" i18n="lightning.capacity">Capacity</th>
-      <th class="channelid text-right" i18n="channels.id">Channel ID</th>
-      <th class="status text-left" i18n="transaction.status|Transaction Status">Status</th>
-      <th class="feerate text-left" *ngIf="status !== 'closed'">Fee rate</th>
-      <th class="feerate text-left" *ngIf="status !== 'closed'">Inbound Fee rate</th>
-      <th class="feerate text-left" *ngIf="status !== 'closed'">Base fee</th>
-      <th class="feerate text-left" *ngIf="status !== 'closed'">Inbound Base fee</th>
-      <th class="feerate text-left" *ngIf="status !== 'closed'">Fee rate</th>
-      <th class="feerate text-left" *ngIf="status !== 'closed'">Inbound Fee rate</th>
-      <th class="feerate text-left" *ngIf="status !== 'closed'">Base fee</th>
-      <th class="feerate text-left" *ngIf="status !== 'closed'">Inbound Base fee</th>
-      <th class="feerate text-left" *ngIf="status === 'closed'" i18n="channels.closing_date">Closing date</th>
+      <th *ngIf="columns.get('channelInfo').value" class="alias text-left" i18n="lightning.alias">Alias</th>
+      <th *ngIf="columns.get('channelInfo').value" class="nodedetails text-left">&nbsp;</th>
+      <th *ngIf="columns.get('channelInfo').value" class="liquidity text-right" i18n="lightning.capacity">Capacity</th>
+      <th *ngIf="columns.get('channelInfo').value" class="channelid text-right" i18n="channels.id">Channel ID</th>
+      <th *ngIf="columns.get('channelInfo').value" class="status text-left" i18n="transaction.status|Transaction Status">Status</th>
+      <th *ngIf="columns.get('local').value && status !== 'closed'" class="feerate text-left">Fee rate</th>
+      <th *ngIf="columns.get('local').value && status !== 'closed'" class="feerate text-left">Inbound Fee rate</th>
+      <th *ngIf="columns.get('local').value && status !== 'closed'" class="feerate text-left">Base fee</th>
+      <th *ngIf="columns.get('local').value && status !== 'closed'" class="feerate text-left">Inbound Base fee</th>
+      <th *ngIf="columns.get('peer').value && status !== 'closed'" class="feerate text-left">Fee rate</th>
+      <th *ngIf="columns.get('peer').value && status !== 'closed'" class="feerate text-left">Inbound Fee rate</th>
+      <th *ngIf="columns.get('peer').value && status !== 'closed'" class="feerate text-left">Base fee</th>
+      <th *ngIf="columns.get('peer').value && status !== 'closed'" class="feerate text-left">Inbound Base fee</th>
+      <th *ngIf="columns.get('closingDate').value && status === 'closed'" class="feerate text-left" i18n="channels.closing_date">Closing date</th>
     </tr>
   </thead>
 </ng-template>
 
 <ng-template #tableTemplate let-channel let-node="node">
-  <td class="alias text-left">
+  <td *ngIf="columns.get('channelInfo').value" class="alias text-left">
     <app-truncate [text]="node.alias || '?'" [maxWidth]="200" [lastChars]="6"></app-truncate>
     <div class="second-line">
       <app-truncate [text]="node.public_key" [maxWidth]="200" [lastChars]="6" [link]="['/lightning/node' | relativeUrl, node.public_key]">
@@ -63,7 +91,7 @@
       </app-truncate>
     </div>
   </td>
-  <td class="nodedetails text-left">
+  <td *ngIf="columns.get('channelInfo').value" class="nodedetails text-left">
     <div class="second-line"><ng-container *ngTemplateOutlet="xChannels; context: {$implicit: node.channels }"></ng-container></div>
     <div class="second-line">
       <app-amount *ngIf="node.capacity > 100000000; else smallnode" [satoshis]="node.capacity" [digitsInfo]="'1.2-2'" [noFiat]="true"></app-amount>
@@ -73,17 +101,17 @@
       </ng-template>
     </div>
   </td>
-  <td class="liquidity text-right">
+  <td *ngIf="columns.get('channelInfo').value" class="liquidity text-right">
     <app-amount *ngIf="channel.capacity > 100000000; else smallchannel" [satoshis]="channel.capacity" [digitsInfo]="'1.2-2'" [noFiat]="true"></app-amount>
     <ng-template #smallchannel>
       {{ channel.capacity | amountShortener: 1 }}
       <span class="sats" i18n="shared.sats">sats</span>
     </ng-template>
   </td>
-  <td class="channelid text-right">
+  <td *ngIf="columns.get('channelInfo').value" class="channelid text-right">
     <a [routerLink]="['/lightning/channel' | relativeUrl, channel.id]">{{ channel.short_id }}</a>
    </td>
-  <td class="status">
+  <td *ngIf="columns.get('channelInfo').value" class="status">
     <span class="badge rounded-pill badge-secondary" *ngIf="channel.status === 0" i18n="status.inactive">Inactive</span>
     <span class="badge rounded-pill badge-success" *ngIf="channel.status === 1" i18n="status.active">Active</span>
     <ng-template [ngIf]="channel.status === 2">
@@ -93,31 +121,31 @@
       </ng-template>
     </ng-template>
   </td>
-  <td *ngIf="status !== 'closed'" class="feerate text-left">
+  <td *ngIf="columns.get('local').value && status !== 'closed'" class="feerate text-left">
     {{ channel.fee.local.rate }} <span class="symbol">ppm</span>
   </td>
-  <td *ngIf="status !== 'closed'" class="feerate text-left">
+  <td *ngIf="columns.get('local').value && status !== 'closed'" class="feerate text-left">
     {{ channel.fee.local.inbound_rate }} <span class="symbol">ppm</span>
   </td>
-  <td *ngIf="status !== 'closed'" class="feerate text-left">
+  <td *ngIf="columns.get('local').value && status !== 'closed'" class="feerate text-left">
     {{ channel.fee.local.base / 1000 }} <span class="symbol">sats</span>
   </td>
-  <td *ngIf="status !== 'closed'" class="feerate text-left">
+  <td *ngIf="columns.get('local').value && status !== 'closed'" class="feerate text-left">
     {{ channel.fee.local.inbound_base / 1000 }} <span class="symbol">sats</span>
   </td>
-  <td *ngIf="status !== 'closed'" class="feerate text-left">
+  <td *ngIf="columns.get('peer').value && status !== 'closed'" class="feerate text-left">
     {{ channel.fee.peer.rate }} <span class="symbol">ppm</span>
   </td>
-  <td *ngIf="status !== 'closed'" class="feerate text-left">
+  <td *ngIf="columns.get('peer').value && status !== 'closed'" class="feerate text-left">
     {{ channel.fee.peer.inbound_rate }} <span class="symbol">ppm</span>
   </td>
-  <td *ngIf="status !== 'closed'" class="feerate text-left">
+  <td *ngIf="columns.get('peer').value && status !== 'closed'" class="feerate text-left">
     {{ channel.fee.peer.base / 1000 }} <span class="symbol">sats</span>
   </td>
-  <td *ngIf="status !== 'closed'" class="feerate text-left">
+  <td *ngIf="columns.get('peer').value && status !== 'closed'" class="feerate text-left">
     {{ channel.fee.peer.inbound_base / 1000 }} <span class="symbol">sats</span>
   </td>
-  <td *ngIf="status === 'closed'" class="feerate text-left">
+  <td *ngIf="columns.get('closingDate').value && status === 'closed'" class="feerate text-left">
     <app-timestamp [unixTime]="channel.closing_date"></app-timestamp>
   </td>
 </ng-template>
