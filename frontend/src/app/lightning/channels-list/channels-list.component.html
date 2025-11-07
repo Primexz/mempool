@@ -29,16 +29,28 @@
   
 <ng-template #tableHeader>
   <thead>
-    <th class="alias text-left" i18n="lightning.alias">Alias</th>
-    <th class="nodedetails text-left">&nbsp;</th>
-    <th class="status text-left" i18n="transaction.status|Transaction Status">Status</th>
-    <th class="feerate text-left" *ngIf="status !== 'closed'">Local Fee rate</th>
-    <th class="feerate text-left" *ngIf="status !== 'closed'">Local Base fee</th>
-    <th class="feerate text-left" *ngIf="status !== 'closed'">Peer Fee rate</th>
-    <th class="feerate text-left" *ngIf="status !== 'closed'">Peer Base fee</th>
-    <th class="feerate text-left" *ngIf="status === 'closed'" i18n="channels.closing_date">Closing date</th>
-    <th class="liquidity text-right" i18n="lightning.capacity">Capacity</th>
-    <th class="channelid text-right" i18n="channels.id">Channel ID</th>
+    <tr>
+      <th colspan="5">Channel Info</th>
+      <th colspan="4">Local</th>
+      <th colspan="4">Peer</th>
+    </tr>
+
+    <tr>
+      <th class="alias text-left" i18n="lightning.alias">Alias</th>
+      <th class="nodedetails text-left">&nbsp;</th>
+      <th class="liquidity text-right" i18n="lightning.capacity">Capacity</th>
+      <th class="channelid text-right" i18n="channels.id">Channel ID</th>
+      <th class="status text-left" i18n="transaction.status|Transaction Status">Status</th>
+      <th class="feerate text-left" *ngIf="status !== 'closed'">Fee rate</th>
+      <th class="feerate text-left" *ngIf="status !== 'closed'">Inbound Fee rate</th>
+      <th class="feerate text-left" *ngIf="status !== 'closed'">Base fee</th>
+      <th class="feerate text-left" *ngIf="status !== 'closed'">Inbound Base fee</th>
+      <th class="feerate text-left" *ngIf="status !== 'closed'">Fee rate</th>
+      <th class="feerate text-left" *ngIf="status !== 'closed'">Inbound Fee rate</th>
+      <th class="feerate text-left" *ngIf="status !== 'closed'">Base fee</th>
+      <th class="feerate text-left" *ngIf="status !== 'closed'">Inbound Base fee</th>
+      <th class="feerate text-left" *ngIf="status === 'closed'" i18n="channels.closing_date">Closing date</th>
+    </tr>
   </thead>
 </ng-template>
 
@@ -61,6 +73,16 @@
       </ng-template>
     </div>
   </td>
+  <td class="liquidity text-right">
+    <app-amount *ngIf="channel.capacity > 100000000; else smallchannel" [satoshis]="channel.capacity" [digitsInfo]="'1.2-2'" [noFiat]="true"></app-amount>
+    <ng-template #smallchannel>
+      {{ channel.capacity | amountShortener: 1 }}
+      <span class="sats" i18n="shared.sats">sats</span>
+    </ng-template>
+  </td>
+  <td class="channelid text-right">
+    <a [routerLink]="['/lightning/channel' | relativeUrl, channel.id]">{{ channel.short_id }}</a>
+   </td>
   <td class="status">
     <span class="badge rounded-pill badge-secondary" *ngIf="channel.status === 0" i18n="status.inactive">Inactive</span>
     <span class="badge rounded-pill badge-success" *ngIf="channel.status === 1" i18n="status.active">Active</span>
@@ -75,27 +97,29 @@
     {{ channel.fee.local.rate }} <span class="symbol">ppm</span>
   </td>
   <td *ngIf="status !== 'closed'" class="feerate text-left">
+    {{ channel.fee.local.inbound_rate }} <span class="symbol">ppm</span>
+  </td>
+  <td *ngIf="status !== 'closed'" class="feerate text-left">
     {{ channel.fee.local.base / 1000 }} <span class="symbol">sats</span>
+  </td>
+  <td *ngIf="status !== 'closed'" class="feerate text-left">
+    {{ channel.fee.local.inbound_base / 1000 }} <span class="symbol">sats</span>
   </td>
   <td *ngIf="status !== 'closed'" class="feerate text-left">
     {{ channel.fee.peer.rate }} <span class="symbol">ppm</span>
   </td>
   <td *ngIf="status !== 'closed'" class="feerate text-left">
+    {{ channel.fee.peer.inbound_rate }} <span class="symbol">ppm</span>
+  </td>
+  <td *ngIf="status !== 'closed'" class="feerate text-left">
     {{ channel.fee.peer.base / 1000 }} <span class="symbol">sats</span>
+  </td>
+  <td *ngIf="status !== 'closed'" class="feerate text-left">
+    {{ channel.fee.peer.inbound_base / 1000 }} <span class="symbol">sats</span>
   </td>
   <td *ngIf="status === 'closed'" class="feerate text-left">
     <app-timestamp [unixTime]="channel.closing_date"></app-timestamp>
   </td>
-  <td class="liquidity text-right">
-    <app-amount *ngIf="channel.capacity > 100000000; else smallchannel" [satoshis]="channel.capacity" [digitsInfo]="'1.2-2'" [noFiat]="true"></app-amount>
-    <ng-template #smallchannel>
-      {{ channel.capacity | amountShortener: 1 }}
-      <span class="sats" i18n="shared.sats">sats</span>
-    </ng-template>
-  </td>
-  <td class="channelid text-right">
-    <a [routerLink]="['/lightning/channel' | relativeUrl, channel.id]">{{ channel.short_id }}</a>
-   </td>
 </ng-template>
 
 <ng-template #skeleton>

@@ -237,6 +237,7 @@ class ChannelsApi {
         AND channels.id = ?
       `;
 
+      // TODO: ADD BASE FEE AND FEE RATE TO EACH SIDE
       const [rows]: any = await DB.query(query, [id]);
       if (rows[0]) {
         return this.convertChannel(rows[0]);
