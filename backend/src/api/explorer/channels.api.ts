@@ -525,7 +525,7 @@ class ChannelsApi {
             AND channels.status ${channelStatusFilter}
       `;
 
-      const [channelsRows]: any = await DB.query(newQuery, [
+      let [channelsRows]: any = await DB.query(newQuery, [
         public_key,
         public_key,
         public_key,
@@ -539,49 +539,21 @@ class ChannelsApi {
         public_key,
         public_key
       ]);
+      channelsRows = channelsRows.sort((a, b) => {
+        if (status === 'closed') {
+          if (!b.closing_date && !a.closing_date) {
+            return (b.updated_at ?? 0) - (a.updated_at ?? 0);
+          } else {
+            return (b.closing_date ?? 0) - (a.closing_date ?? 0);
+          }
+        } else {
+          return b.capacity - a.capacity;
+        }
+      });
 
-
-      // // Channels originating from node
-      // let query = `
-      //   SELECT COALESCE(node2.alias, SUBSTRING(node2_public_key, 0, 20)) AS alias, COALESCE(node2.public_key, node2_public_key) AS public_key,
-      //     channels.status, channels.node1_fee_rate, channels.node1_inbound_fee_rate, channels.node1_inbound_base_fee_mtokens,
-      //     channels.capacity, channels.short_id, channels.id, channels.closing_reason,
-      //     UNIX_TIMESTAMP(closing_date) as closing_date, UNIX_TIMESTAMP(channels.updated_at) as updated_at
-      //   FROM channels
-      //   LEFT JOIN nodes AS node2 ON node2.public_key = channels.node2_public_key
-      //   WHERE node1_public_key = ? AND channels.status ${channelStatusFilter}
-      // `;
-      // const [channelsFromNode]: any = await DB.query(query, [public_key]);
-
-      // // Channels incoming to node
-      // query = `
-      //   SELECT COALESCE(node1.alias, SUBSTRING(node1_public_key, 0, 20)) AS alias, COALESCE(node1.public_key, node1_public_key) AS public_key,
-      //     channels.status, channels.node2_fee_rate, channels.node2_inbound_fee_rate, channels.node2_inbound_base_fee_mtokens,
-      //     channels.capacity, channels.short_id, channels.id, channels.closing_reason,
-      //     UNIX_TIMESTAMP(closing_date) as closing_date, UNIX_TIMESTAMP(channels.updated_at) as updated_at
-      //   FROM channels
-      //   LEFT JOIN nodes AS node1 ON node1.public_key = channels.node1_public_key
-      //   WHERE node2_public_key = ? AND channels.status ${channelStatusFilter}
-      // `;
-      // const [channelsToNode]: any = await DB.query(query, [public_key]);
-
-      // let allChannels = channelsFromNode.concat(channelsToNode);
-      // allChannels.sort((a, b) => {
-      //   if (status === 'closed') {
-      //     if (!b.closing_date && !a.closing_date) {
-      //       return (b.updated_at ?? 0) - (a.updated_at ?? 0);
-      //     } else {
-      //       return (b.closing_date ?? 0) - (a.closing_date ?? 0);
-      //     }
-      //   } else {
-      //     return b.capacity - a.capacity;
-      //   }
-      // });
-
-      // if (index === -1) {
-      //   // Node channels tree chart
-      //   allChannels = allChannels.slice(0, 1000);
-      // }
+      if (index === -1) {
+        channelsRows = channelsRows.slice(0, 1000);
+      }
 
       const channels: any[] = [];
       for (const row of channelsRows) {
@@ -617,49 +589,6 @@ class ChannelsApi {
               capacity: activeChannelsStats.capacity ?? 0,
             },
           })
-
-        // let channel;
-        // if (index === -1) {
-        //   channel = {
-        //     capacity: row.capacity ?? 0,
-        //     short_id: row.short_id,
-        //     id: row.id,
-        //     node: {
-        //       alias:
-        //         row.alias.length > 0 ? row.alias : row.public_key.slice(0, 20),
-        //       public_key: row.public_key,
-        //     },
-        //   };
-        // } else {
-        //   const activeChannelsStats: any =
-        //     await nodesApi.$getActiveChannelsStats(row.public_key);
-        //   channel = {
-        //     status: row.status,
-        //     closing_reason: row.closing_reason,
-        //     closing_date: row.closing_date,
-        //     capacity: row.capacity ?? 0,
-        //     short_id: row.short_id,
-        //     id: row.id,
-        //     fee_rate: row.node1_fee_rate ?? row.node2_fee_rate ?? 0,
-        //     inbound_fee: {
-        //       fee_rate:
-        //         row.node1_inbound_fee_rate ?? row.node2_inbound_fee_rate ?? 0,
-        //       base_fee_mtokens:
-        //         row.node1_inbound_base_fee_mtokens ??
-        //         row.node2_inbound_base_fee_mtokens ??
-        //         0,
-        //     },
-        //     node: {
-        //       alias:
-        //         row.alias.length > 0 ? row.alias : row.public_key.slice(0, 20),
-        //       public_key: row.public_key,
-        //       channels: activeChannelsStats.active_channel_count ?? 0,
-        //       capacity: activeChannelsStats.capacity ?? 0,
-        //     },
-        //   };
-        // }
-
-        // channels.push(channel);
       }
 
       return channels;
